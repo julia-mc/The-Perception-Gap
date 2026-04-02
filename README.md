@@ -11,4 +11,10 @@ This project analyzes the gap between what the public reported to 911 calls and 
 - Power BI
 
 **Project Structure**
-This repository follows 
+This repository follows the the following structure:
+data -> raw/interim/processed/external
+ingestion -> notebooks/scripts/docs
+eda -> notebooks/scripts/docs/images
+analysis -> notebooks/scripts/docs/models/images
+reports -> plan/interim/final/figures
+docs -> references/sources
