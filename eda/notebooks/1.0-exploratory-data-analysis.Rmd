@@ -1,0 +1,309 @@
+---
+title: "1.0-exploratory-data-analysis"
+author: "Julia M.C."
+date: "2026-04-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+# Loading the libraries and datasets
+library(tidyverse)
+library(lubridate)
+setwd("~/Downloads/DATASETS")
+crime <- read_csv("crime_cleaned.csv")
+dispatch <- read_csv("dispatch_cleaned.csv")
+bias <- read_csv("bias_cleaned.csv")
+citation <- read_csv("citation_cleaned.csv")
+```
+
+```{r}
+# Join dispatch calls with confirmed crime reports
+combined_data <- dispatch |>
+  left_join(crime, by = c("crime_reports" = "cr_number")) |>
+  rename( police_district_number = police_district_number.x, year_month = year_month.x) |>
+  mutate(no_crime_report = if_else(is.na(crime_name1), "No Crime Report Generated", "Crime Confirmed"),
+    initial_type_clean = str_to_upper(str_trim(initial_type)),
+    crime_name1_clean = str_to_upper(str_trim(crime_name1)),
+    
+    # Compare perception (dispatch) vs reality (crime)
+    mismatch = case_when(no_crime_report == "No Crime Report Generated" ~ "N/A",
+      initial_type_clean == crime_name1_clean ~ "Match",
+      TRUE ~ "Mismatch"))
+```
+
+
+# Severity Logic 
+```{r}
+unique(dispatch$initial_type)
+unique(crime$crime_name1)
+unique(crime$crime_name2)
+```
+
+```{r}
+combined_data <- combined_data |>
+  mutate(
+    initial_norm = initial_type_clean |>
+      str_to_upper() |>
+      str_replace_all("[^A-Z ]", " ") |>
+      str_squish())
+
+combined_data <- combined_data |>
+  mutate(
+    initial_rank = case_when(
+      str_detect(initial_norm,
+        "HOMICIDE|MURDER|SHOOT|SHOOTING|ACTIVE ASSAILANT|
+         WEAPON|WEAP|FIREARM|
+         ROBBERY|ROBB|ROB|
+         ASSAULT|ASLT|
+         ARSON|
+         KIDNAP|ABDUCT|
+         RAPE|SEXUAL|SEXASLT|
+         STAB|
+         TRAFFICK|
+         EXTORT|
+         CARJACK|
+         DOMESTIC VIOLENCE|DOMV"
+      ) ~ 3,
+
+      str_detect(initial_norm,
+        "THEFT|LARCENY|BURG|BURGLARY|
+         FRAUD|DECEPTION|
+         VANDAL|DAMAGE|MISCHIEF|
+         STOLEN VEHICLE|AUTO THEFT"
+      ) ~ 2,
+
+      str_detect(initial_norm,
+        "DISORDERLY|DISTURBANCE|
+         SUSPICIOUS|SUSPIC|
+         NOISE|
+         MENTAL|
+         DRUG|CDS|
+         DUI|DRIVING UNDER|
+         LOITER|
+         TRESPASS|
+         LIQUOR|
+         RUNAWAY|MISSING|
+         HARASS|THREAT|
+         WELFARE|
+         ANIMAL|
+         OVERDOSE|
+         TRAFFIC|
+         ADMIN|ASSIST|FOLLOW UP|INVESTIGATION"
+      ) ~ 1,
+
+      TRUE ~ NA_real_ ))
+
+
+combined_data <- combined_data |>
+  mutate(
+    crime_rank = case_when(
+      crime_name2 %in% c(
+        "Robbery",
+        "Aggravated Assault",
+        "Simple Assault",
+        "Kidnapping/Abduction",
+        "Forcible Rape",
+        "Forcible Fondling",
+        "Murder and Nonnegligent Manslaughter",
+        "Negligent Manslaughter",
+        "Justifiable Homicide",
+        "Weapon Law Violations",
+        "Arson",
+        "Human Trafficking, Commercial Sex Acts",
+        "Human Trafficking, Involuntary Servitude",
+        "Extortion/Blackmail",
+        "Animal Cruelty",
+        "Statuory Rape",
+        "Incest",
+        "Intimidation"
+      ) ~ 3,
+
+      crime_name2 %in% c(
+        "Burglary/Breaking and Entering",
+        "Motor Vehicle Theft",
+        "Theft From Motor Vehicle",
+        "Theft from Building",
+        "Theft of Motor Vehicle Parts or Accessories",
+        "All other Larceny",
+        "Shoplifting",
+        "Pocket/picking",
+        "From Coin/Operated Machine or Device",
+        "Destruction/Damage/Vandalism of Property",
+        "Identity Theft",
+        "Credit Card/Automatic Teller Machine Fraud",
+        "False Pretenses/Swindle/Confidence Game",
+        "Wire Fraud",
+        "Hacking/Computer Invasion",
+        "Embezzlement",
+        "Counterfeiting/Forgery",
+        "Stolen Property Offenses",
+        "Purse-snatching",
+        "Impersonation",
+        "Welfare Fraud"
+      ) ~ 2,
+
+      crime_name2 %in% c(
+        "Disorderly Conduct",
+        "Driving Under the Influence",
+        "Drug/Narcotic Violations",
+        "Drug Equipment Violations",
+        "Prostitution",
+        "Assisting or Promoting Prostitution",
+        "Curfew/Loitering/Vagrancy Violations",
+        "Liquor Law Violations",
+        "Trespass of Real Property",
+        "Runaway",
+        "All Other Offenses",
+        "Family Offenses, NonViolent",
+        "Operating/Promoting/Assisting Gambling",
+        "Pornography/Obscene Material",
+        "Bribery"
+      ) ~ 1,
+
+      # Fallback
+      crime_name1 == "Crime Against Person" ~ 3,
+      crime_name1 == "Crime Against Property" ~ 2,
+      crime_name1 %in% c("Crime Against Society", "Crime Against Not a Crime") ~ 1,
+
+      TRUE ~ NA_real_))
+```
+
+# Defining the perception gap
+```{r}
+combined_data <- combined_data |>
+  mutate(
+    severity_shift = case_when(
+      no_crime_report == "No Crime Report Generated" ~ "N/A (No Crime)",
+
+      is.na(initial_rank) | is.na(crime_rank) ~ "Unclassified",
+
+      initial_rank == crime_rank ~ "Severity Match",
+      initial_rank > crime_rank ~ "Severity Downgraded",
+      initial_rank < crime_rank ~ "Severity Upgraded"
+    )
+  )
+table(combined_data$severity_shift)
+prop.table(table(combined_data$severity_shift))
+```
+The majority of calls (~1.49 million) resulted in no crime report.
+Only a smaller portion resulted in:
+  - Severity Match (~196k) -> Correct perception
+  - Severity Downgraded (~13k) -> Overestimation
+  - Severity Upgraded (~20k) -> Underestimation
+  - Unclassified (~98k)
+  
+This suggests that many reported incidents do not correspond to confirmed criminal activity, which may reflect cautious reporting behavior or differences between perceived and legally defined crime.
+
+```{r}
+combined_data |> 
+  filter(is.na(initial_rank)) |> 
+  count(initial_type_clean, sort = TRUE)
+```
+
+
+
+# Aggregated Data (District-month)
+```{r}
+district_month_summary <- combined_data |>
+  group_by(police_district_number, year_month) |>
+  summarise(
+    total_calls = n(),
+    # Perception gap (calls without crime reports)
+    no_report_count = sum(severity_shift == "N/A (No Crime)"),
+    no_report_rate = (no_report_count / total_calls) * 100,
+    
+    # Mismatch between perception and reality
+    mismatch_count = sum(severity_shift != "Severity Match" & severity_shift != "N/A (No Crime)"),
+    mismatch_rate = if_else(
+      (total_calls - no_report_count) > 0,
+      (mismatch_count / (total_calls - no_report_count)) * 100,
+      NA_real_),
+    # Overestimation (downgrade)
+    downgrade_count = sum(severity_shift == "Severity Downgraded"),
+    downgrade_rate = if_else(
+      (total_calls - no_report_count) > 0,
+      (downgrade_count / (total_calls - no_report_count)) * 100,
+      NA_real_),
+  .groups = "drop"
+  )
+```
+
+```{r}
+head(district_month_summary)
+```
+
+```{r}
+district_month_summary <- district_month_summary |>
+  mutate(police_district_number = as.character(police_district_number))
+
+# Create citation summary
+citation_summary <- citation |>
+  group_by(district, year_month) |>
+  summarise(total_citations = n(), .groups = "drop") |>
+  mutate(district = as.character(district))
+
+# Create bias summary
+bias_summary <- bias |>
+  group_by(district, year_month) |>
+  summarise(total_bias = n(), .groups = "drop") |>
+  mutate(district = as.character(district))
+```
+
+```{r}
+final_table <- district_month_summary |>
+  left_join(citation_summary, by = c("police_district_number" = "district", "year_month")) |>
+  left_join(bias_summary, by = c("police_district_number" = "district", "year_month")) 
+```
+
+```{r}
+final_table <- final_table |>
+  mutate(
+    citations_per_100_calls = (total_citations / total_calls) * 100,
+    bias_per_100_calls = (total_bias / total_calls) * 100
+  )
+```
+
+```{r}
+dim(final_table)
+sum(is.na(final_table)) 
+```
+
+
+```{r}
+head(final_table)
+#write_csv(final_table, "final_table.csv")
+```
+
+# Visualizations
+```{r}
+ggplot(combined_data, aes(x = severity_shift, fill = severity_shift)) +
+  geom_bar() +
+  scale_x_discrete(labels = c("N/A (No Crime)" = "No Crime", "Severity Match" = "Match", "Severity Downgraded" = "Overestimate", "Severity Upgraded" = "Underestimate", "Unclassified" = "Unclassified")) +
+  scale_fill_manual(values = c("N/A (No Crime)" = "#F94144","Severity Downgraded" = "#F3722C", "Severity Match" = "#43AA8B", "Severity Upgraded" = "#577590", "Unclassified" = "#9D4EDD")) +
+  labs(title = "Distribution of Severity Classification", x = "Severity Outcome", y = "Count") +
+  theme_minimal()
+```
+This reinforces that the perception gap is not driven by misclassification alone, but primarily by the high volume of calls that do not result in any crime report.
+
+```{r}
+final_table |>
+  filter(!is.na(police_district_number)) |>
+  ggplot(aes(x = police_district_number, y = no_report_rate)) +
+  geom_boxplot(fill = "#90DBF4", color = "#023E8A", alpha = 0.8) +
+  labs(title = "Perception Gap Distribution by District", x = "District", y = "No Report Rate (%)") +
+  theme_minimal()
+```
+Most districts have a No Report Rate between about 80% and 85%, showing a high perception gap across all areas. District 1 has the highest typical level, while district 2 shows more variation, meaning its reporting is less consistent. Even with these differences, no district has a median below 79%, which shows the perception gap is high in every district.
+
+```{r}
+ggplot(combined_data, aes(x = police_district_number, fill = severity_shift)) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = c("N/A (No Crime)" = "#F94144", "Severity Downgraded" = "#F3722C", "Severity Match" = "#43AA8B", "Severity Upgraded" = "#577590", "Unclassified" = "#9D4EDD")) +
+  labs(title = "Severity Distribution by District", x = "District", y = "Proportion", fill = "Severity Outcome") +
+  theme_minimal()
+```
+The high perception gap across all districts is mainly driven by incidents being classified as No Crime. While there are small differences between districts, the overall pattern is very similar. In cases where a crime is confirmed, the reported severity usually matches the actual classification.
