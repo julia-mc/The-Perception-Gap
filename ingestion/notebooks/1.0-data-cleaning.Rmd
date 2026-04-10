@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r, include=FALSE}
-# Loading the libraries and datasets
+# Load required libraries and datasets
 library(tidyverse)
 library(lubridate)
 setwd("~/Downloads/DATASETS")
@@ -28,12 +28,13 @@ unique(crime$"Police District Number")
 ```
 
 ```{r}
+# Standardize column names: lowercase + replace spaces with underscores
 names(crime) <- tolower(names(crime)) 
 names(crime) <- gsub(" ","_",names(crime))
-head(crime)
 ```
 
 ```{r}
+# Convert datetime and create year, month and year_month 
 crime$start_date_time <- mdy_hms(crime$start_date_time)
 
 crime$year <- year(crime$start_date_time)
@@ -42,6 +43,7 @@ crime$year_month <- floor_date(crime$start_date_time, "month")
 ```
 
 ```{r}
+# Clean and filter police district values (keep only districts 1-6)
 crime <- crime |>
   mutate(police_district_number = str_remove(police_district_number, "D"),police_district_number = str_trim(police_district_number))|>
   filter(police_district_number %in% c("1","2","3","4","5","6"))
