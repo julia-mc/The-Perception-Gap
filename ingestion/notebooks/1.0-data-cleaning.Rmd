@@ -130,9 +130,9 @@ citation <- citation |>
 
 
 ```{r}
-#write_csv(crime, "crime_cleaned.csv")
-#write_csv(dispatch, "dispatch_cleaned.csv")
-#write_csv(bias, "bias_cleaned.csv")
-#write_csv(citation, "citation_cleaned.csv")
+write_csv(crime, "crime_cleaned.csv")
+write_csv(dispatch, "dispatch_cleaned.csv")
+write_csv(bias, "bias_cleaned.csv")
+write_csv(citation, "citation_cleaned.csv")
 ```
 
