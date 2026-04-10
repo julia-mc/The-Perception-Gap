@@ -21,7 +21,7 @@ bias <- read_csv("mc_bias_incidents.csv")
 citation <- read_csv("mc_citations.csv")
 ```
 
-#CRIME
+# CRIME
 ```{r}
 head(crime)
 unique(crime$"Police District Number")
@@ -49,7 +49,7 @@ crime <- crime |>
   filter(police_district_number %in% c("1","2","3","4","5","6"))
 ```
 
-#DISPATCH
+# DISPATCH
 ```{r}
 head(dispatch)
 unique(dispatch$"Police District Number")
@@ -73,7 +73,7 @@ dispatch <- dispatch|>
   mutate(police_district_number = as.character(police_district_number))
 ```
 
-#BIAS
+# BIAS
 ```{r}
 head(bias)
 unique(bias$"District")
