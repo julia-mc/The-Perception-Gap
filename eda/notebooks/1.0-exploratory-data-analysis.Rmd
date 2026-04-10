@@ -13,7 +13,6 @@ knitr::opts_chunk$set(echo = TRUE)
 # Loading the libraries and datasets
 library(tidyverse)
 library(lubridate)
-setwd("~/Downloads/DATASETS")
 crime <- read_csv("crime_cleaned.csv")
 dispatch <- read_csv("dispatch_cleaned.csv")
 bias <- read_csv("bias_cleaned.csv")
