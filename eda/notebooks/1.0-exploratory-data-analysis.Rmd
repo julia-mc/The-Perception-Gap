@@ -264,7 +264,20 @@ final_table <- final_table |>
     citations_per_100_calls = (total_citations / total_calls) * 100,
     bias_per_100_calls = (total_bias / total_calls) * 100
   )
+
+final_table <- final_table |>
+  mutate(police_district_number = factor(police_district_number),
+         year = year(year_month),
+         month_num = month(year_month))
+
+clean_data <- final_table |>
+  filter(!is.na(bias_per_100_calls), !is.na(citations_per_100_calls), !is.na(no_report_rate), !is.na(no_report_count), !is.na(total_calls))
+
+clean_combined <- combined_data |>
+  filter(!is.na(severity_shift), !is.na(police_district_number), !is.na(initial_type), !is.na(crime_name1)) |>
+  mutate(police_district_number = factor(police_district_number))
 ```
+
 
 ```{r}
 dim(final_table)
@@ -306,3 +319,15 @@ ggplot(combined_data, aes(x = police_district_number, fill = severity_shift)) +
   theme_minimal()
 ```
 The high perception gap across all districts is mainly driven by incidents being classified as No Crime. While there are small differences between districts, the overall pattern is very similar. In cases where a crime is confirmed, the reported severity usually matches the actual classification.
+
+```{r}
+ggplot(clean_data, aes(x = mismatch_rate, y = downgrade_rate)) +
+  geom_point(aes(size = total_calls, color = police_district_number), alpha = 0.6) +
+  geom_smooth(method = "lm", color = "darkgray", linetype = "dashed", se = TRUE) +
+  scale_color_viridis_d(option = "D") +
+  theme_minimal() +
+  labs(title = "The Mismatch-Downgrade Correlation", x = "Mismatch Rate (per 100 calls)", y = "Downgrade Rate (per 100 calls)", size = "Call Volume", color = "District") +
+  theme(legend.position = "bottom")
+```
+The scatterplot shows a positive relationship between mismatch rate and downgrade rate, meaning that when there is more disagreement between dispatch classification and actual crime outcomes, there tend to be more downgrades. The points are somewhat spread out, so the relationship is moderate. Most of the data falls within a similar range, showing that this pattern is generally consistent across districts. However, there are some  differences: District 1 appears more on the far right, indicating higher mismatch rates; District 2 clusters lower and to the left; and District 6 is often higher on the y-axis, indicating a greater tendency to downgrade severity even when mismatch rates are moderate. 
+
