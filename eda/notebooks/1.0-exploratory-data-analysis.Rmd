@@ -289,7 +289,7 @@ sum(is.na(final_table))
 head(final_table)
 write_csv(final_table, "final_table.csv")
 write_csv(clean_data, "clean_data.csv")
-write_csv(combined_clean, "combined_clean.csv")
+write_csv(clean_combined, "clean_combined.csv")
 ```
 
 # Visualizations
