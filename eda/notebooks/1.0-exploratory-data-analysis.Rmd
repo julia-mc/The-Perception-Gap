@@ -1,5 +1,8 @@
 ---
-
+title: "1.0-exploratory-data-analysis"
+author: "Julia M.C."
+date: "2026-04-10"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
