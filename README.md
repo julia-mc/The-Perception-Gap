@@ -18,12 +18,10 @@ This repository follows the the following structure:
 
 data -> raw/interim/processed/external
 
-ingestion -> notebooks/scripts/docs
+ingestion -> notebooks/docs
 
-eda -> notebooks/scripts/docs/images
+eda -> notebooks/docs/images
 
-analysis -> notebooks/scripts/docs/models/images
-
-reports -> plan/interim/final/figures
+reports -> plan/final
 
 docs -> references/sources
