@@ -10,6 +10,9 @@ This project analyzes the gap between what the public reported to 911 calls and 
 **Tools Used**
 
 - R Studio
+- Tableau
+
+**Data Product**
 - [Tableau](https://public.tableau.com/shared/72M7TW8BW?:display_count=n&:origin=viz_share_link)
 
 **Project Structure**
