@@ -2,4 +2,4 @@
 
 [Montgomery County Council Approves $7.6 Billion Fiscal Year 2026 Operating Budget](https://apps.montgomerycountymd.gov/BASISOPERATING/Common/Index.aspx#:~:text=Table_title:%20WHAT'S%20NEW%20Table_content:%20header:%20%7C%20Service,%7C%20Appropriation:%20527835256.00%20%7C%20FTE's:%20466.59%20%7C)
 
-[Montgomery County Police Department - Districts](ttps://www.montgomerycountymd.gov/montgomery-county-police-department/districts)
+[Montgomery County Police Department - Districts](https://www.montgomerycountymd.gov/montgomery-county-police-department/districts)
