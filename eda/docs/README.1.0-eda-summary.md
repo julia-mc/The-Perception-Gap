@@ -16,13 +16,13 @@
   * Severity Match: perception was correct
   * Severity Downgraded : reported as more severe than actual (Overestimate)
   * Severity Upgraded: reported as less severe than actual (Underestimate)
-  * No Report: no crime was confirmed
+  * No Report: no official crime report generated
 * **gap_type**:
 
   * No Report
   * Service / Non-Criminal
-  * Overestimate
-  * Underestimate
+  * Severity Downgraded
+  * Severity Upgraded
   * Match
 * **perception_gap_binary**: Classifies calls as Gap or Accurate
 * **service_category**: Identifies whether a call is service related or crime related
@@ -32,9 +32,8 @@
 * Most dispatch calls do not result in a confirmed crime report.
 * The perception gap is mainly driven by the large number of **No Report** and **Service / Non Criminal** calls.
 * Misclassification (overestimation and underestimation) plays a smaller role in the overall gap.
-* When a crime is confirmed, the reported severity is usually accurate.
-* The perception gap is consistently high across districts, with most showing rates around 80%–85%.
-* Differences between districts exist, but the overall pattern is similar across all areas.
+* When a crime is confirmed, the reported severity is usually upgraded.
+* The perception gap is consistently high across districts.
 
 ### Interpretation
 
