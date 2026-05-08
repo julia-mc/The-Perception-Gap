@@ -1,0 +1,78 @@
+---
+title: "perception_gap_ingestion"
+author: "Julia M.C."
+date: "2026-04-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, include=FALSE}
+# Load required libraries and datasets
+library(tidyverse)
+library(lubridate)
+
+crime <- read_csv("mc_crime.csv")
+dispatch <- read_csv("mc_dispatch.csv")
+```
+
+# CRIME
+```{r}
+head(crime)
+unique(crime$"Police District Number")
+```
+
+```{r}
+# Standardize column names: lowercase + replace spaces with underscores
+names(crime) <- tolower(names(crime)) 
+names(crime) <- gsub(" ","_",names(crime))
+```
+
+```{r}
+# Convert datetime and create year, month and year_month 
+crime$start_date_time <- mdy_hms(crime$start_date_time)
+
+crime$year <- year(crime$start_date_time)
+crime$month <- month(crime$start_date_time)
+crime$year_month <- floor_date(crime$start_date_time, "month")
+```
+
+```{r}
+# Clean and filter police district values (keep only districts 1-6)
+crime <- crime |>
+  mutate(police_district_number = str_remove(police_district_number, "D"),police_district_number = str_trim(police_district_number))|>
+  filter(police_district_number %in% c("1","2","3","4","5","6"))
+```
+
+# DISPATCH
+```{r}
+head(dispatch)
+unique(dispatch$"Police District Number")
+```
+
+```{r}
+names(dispatch) <- tolower(names(dispatch)) 
+names(dispatch) <- gsub(" ","_",names(dispatch))
+```
+
+```{r}
+dispatch$start_time <- mdy_hms(dispatch$start_time)
+
+dispatch$year <- year(dispatch$start_time)
+dispatch$month <- month(dispatch$start_time)
+dispatch$year_month <- floor_date(dispatch$start_time, "month")
+```
+
+```{r}
+dispatch <- dispatch|>
+  mutate(police_district_number = as.character(police_district_number))
+```
+
+```{r}
+write_csv(crime, "crime_cleaned.csv")
+write_csv(dispatch, "dispatch_cleaned.csv")
+```
+

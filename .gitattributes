@@ -1,2 +1,1 @@
-clean_data3.0.csv filter=lfs diff=lfs merge=lfs -text
-clean_combined3.0.csv filter=lfs diff=lfs merge=lfs -text
+*.csv filter=lfs diff=lfs merge=lfs -text
