@@ -13,6 +13,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(lubridate)
 library(pscl)
+library(caret)
+library(pROC)
 
 clean_data <- read_csv("clean_data3.0.csv") 
 clean_combined <- read_csv("clean_combined3.0.csv")
@@ -40,16 +42,9 @@ summary(anova_model)
 TukeyHSD(anova_model)
 ```
 
-- District 1 is significantly different from 4, 5, and 6.
-
-- District 2 is also significantly different from 4, 5, and 6.
-
-- District 3 is significantly different from 5 and 6.
-
 District 2 vs. District 5 (diff = -0.64, p < 0.001): This is the largest recorded difference. District 5 has an average perception gap rate approximately 0.64 points lower than District 2.
 
 District 1 vs. District 5 (diff = -0.48, p < 0.001): District 1 is significantly higher than the lower tier districts, specifically 4, 5, and 6.
-
 
 Recommendations: 
 Districts 1 and 2 have among the highest perception gap rates, so they may be useful starting points for further review.
@@ -57,9 +52,11 @@ Districts 1 and 2 have among the highest perception gap rates, so they may be us
 Model Districts 5 and 6: These have the lowest gap rates. Investigation should be done to see what these districts are doing differently that could be applied to Districts 1 and 2.
 
 
-# Linear Regression
+
+
+# Multiple Linear Regression
 ```{r}
-lm_fixed <- lm(total_gap_rate ~ factor(police_district_number) + factor(year), data = clean_data)
+lm_fixed <- lm(total_gap_rate ~ factor(police_district_number) + factor(year),  data = clean_data)
 summary(lm_fixed)
 plot(lm_fixed)
 ```
@@ -81,37 +78,3 @@ Point 391 is a major outlier. It has a very large negative residual, meaning the
 
 Residual diagnostics indicated slight heteroscedasticity and a few outliers, which are expected in real world public safety data. However, the diagnostic plots showed no severe violations that would invalidate the baseline regression approach.
 
-# Logistic Regression
-
-```{r}
-logit_no_report <- glm(gap_no_crime ~ is_service_call + initial_rank + factor(police_district_number) + time_period, family = binomial, data = clean_combined)
-
-summary(logit_no_report)
-
-# Odds ratios
-exp(coef(logit_no_report))
-pR2(logit_no_report)
-```
-This model predicts whether a dispatch call ended without a matching crime report.
-
-- Service / non-criminal calls were approximately 4.8 times more likely to result in a no report outcome compared to non-service calls.
-- Higher severity calls were less likely to end without a crime report, suggesting that more serious incidents were more likely to generate official crime reports.
-- Nighttime calls were associated with higher odds of no report outcomes, while morning calls were associated with slightly lower odds.
-- District affects were also statistically significant, indicating that the probability of no report outcomes varied across police districts.
-
-```{r}
-logit_mismatch <- glm(mismatch ~ is_service_call + initial_rank + factor(police_district_number) + time_period, family = binomial, data = clean_combined)
-summary(logit_mismatch)
-
-# Odds ratios
-exp(coef(logit_mismatch))
-```
-This model predicts whether the dispatch classification differed from the final crime classification.
-
-- Service / non-criminal calls were less likely to be classification mismatches. This suggests that the perception gap is driven more by calls that never become formal crime reports than by classification mismatches.
-- Higher severity was associated with a small increase in mismatch probability.
-- Nighttime calls were associated with lower mismatch probabilities, while morning calls showed slightly higher mismatch odds.
-- Several police districts showed significantly different mismatch probabilities compared to District 1.
-
-
-**The results from both logistic regression models suggest that the perception gap is influenced more by the large number of dispatch calls that do not become formal crime reports than by differences in severity classification.**
