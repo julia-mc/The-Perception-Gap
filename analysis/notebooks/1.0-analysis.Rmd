@@ -32,12 +32,11 @@ At least one police district's mean perception gap rate is different from the ot
 # Anova (District Differences)
 ```{r}
 anova_model <- aov(total_gap_rate ~ factor(police_district_number), clean_data)
-
 summary(anova_model)
 ```
 - The results indicate statistically significant differences in perception gap rates across districts (we reject the null hypothesis).
 
-## Tukey 
+# Tukey 
 ```{r}
 TukeyHSD(anova_model)
 ```
