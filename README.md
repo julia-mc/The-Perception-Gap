@@ -13,7 +13,7 @@ This project analyzes the gap between what the public reported to 911 calls and 
 - Tableau
 
 **Data Product**
-- [Tableau](https://public.tableau.com/shared/72M7TW8BW?:display_count=n&:origin=viz_share_link)
+- [Tableau](https://public.tableau.com/views/ThePerceptionGap_17782872112890/Dashboard1?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
 
 **Project Structure**
 
