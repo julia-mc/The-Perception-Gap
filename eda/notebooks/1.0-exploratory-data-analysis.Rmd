@@ -252,7 +252,11 @@ clean_data <- final_table |>
 
 clean_combined <- combined_data |>
   filter(!is.na(severity_shift), !is.na(police_district_number), !is.na(initial_type)) |>
-  mutate(police_district_number = factor(police_district_number)) 
+  mutate(police_district_number = factor(police_district_number),
+        mismatch_binary = ifelse(mismatch == "Mismatch", 1, 0),
+        gap_binary = ifelse(gap_no_crime == "No Crime Report", 1, 0),
+        match_binary = ifelse(mismatch_binary == 1, 0, 1),
+        report_binary = ifelse(gap_binary == 1, 0, 1))
 ```
 
 
@@ -268,6 +272,7 @@ write_csv(final_table, "final_table3.0.csv")
 write_csv(clean_data, "clean_data3.0.csv")
 write_csv(clean_combined, "clean_combined3.0.csv")
 ```
+
 
 # Visualizations
 ```{r}
@@ -301,6 +306,8 @@ final_table |>
   theme_minimal()
 ```
 Perception gap rates remain consistently high across all police districts, with most districts showing median rates above 96%. Districts 1 and 2 have slightly higher gap rates, while Districts 5 and 6 tend to show somewhat lower levels overall. Several high outliers appear across districts. 
+
+**The perception gap measure includes both classification mismatches and calls that did not result in a confirmed crime report, including many service-related or non-criminal incidents.**
 
 ```{r}
 final_table |>
